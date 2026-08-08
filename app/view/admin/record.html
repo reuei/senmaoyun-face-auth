@@ -1,0 +1,50 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>认证记录 - {$site_name}</title>
+<link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css"><script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script><script src="https://unpkg.com/element-plus"></script><script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:#F8FAFC;color:#1F2937;display:flex;min-height:100vh;line-height:1.5}
+.sidebar{width:220px;background:#fff;border-right:1px solid #E2E8F0;position:fixed;top:0;left:0;bottom:0;z-index:50;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.side-h{padding:18px 20px;border-bottom:1px solid #E2E8F0;font-size:16px;font-weight:700;color:#4F46E5}
+.side-nav{padding:12px 0}.side-nav a{display:flex;align-items:center;gap:10px;padding:11px 20px;color:#6B7280;text-decoration:none;font-size:13px;border-left:3px solid transparent;transition:all .15s}
+.side-nav a:hover{color:#1F2937;background:#F1F5F9}.side-nav a.active{color:#4F46E5;background:#EEF2FF;border-left-color:#4F46E5;font-weight:500}
+.main{margin-left:220px;flex:1;min-height:100vh;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:#fff;border-bottom:1px solid #E2E8F0;position:sticky;top:0;z-index:40}
+.topbar h2{font-size:17px;font-weight:600}.content{flex:1;padding:28px}
+@media(max-width:768px){.sidebar{width:56px}.side-nav a span,.side-h{display:none}.main{margin-left:56px}.content{padding:14px}}
+</style></head><body>
+<aside class="sidebar"><div class="side-h">&#128737; 森码云</div><nav class="side-nav">
+<a href="/admin/dashboard">&#9632; 控制台</a><a href="/admin/driver">&#9881; 接口管理</a>
+<a href="/admin/record" class="active">&#9776; 认证记录</a><a href="/admin/audit">&#9745; 人工审核</a>
+<a href="/admin/token">&#128273; Token管理</a><a href="/admin/setting">&#9881; 系统设置</a><a href="/admin/plugin">&#128230; 插件中心</a>
+</nav></aside>
+<main class="main"><div class="topbar"><h2>认证记录</h2></div><div class="content"><div id="app">
+<el-card>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+<el-select v-model="statusFilter" placeholder="全部状态" clearable style="width:120px" @change="load(1)"><el-option label="通过" value="success"/><el-option label="失败" value="failed"/><el-option label="审核中" value="auditing"/></el-select>
+<el-button @click="exportCsv">导出CSV</el-button>
+</div>
+<el-table :data="list" stripe style="width:100%">
+<el-table-column prop="record_no" label="记录编号" width="180"><template #default="{row}">{{(row.record_no||'').substring(0,16)}}...</template></el-table-column>
+<el-table-column prop="user_id" label="用户ID" width="120"/>
+<el-table-column prop="status" label="状态" width="80"><template #default="{row}"><el-tag :type="statusType(row.status)">{{statusText(row.status)}}</el-tag></template></el-table-column>
+<el-table-column prop="liveness_score" label="活体分数" width="80"/>
+<el-table-column prop="driver_code" label="接口" width="100"/>
+<el-table-column prop="certify_time" label="认证时间" width="160"/>
+<el-table-column prop="ip_address" label="IP"/>
+</el-table>
+<el-pagination v-if="total>20" style="margin-top:16px;text-align:center" :current-page="page" :page-size="20" :total="total" layout="prev,pager,next,total" @current-change="load"/>
+</el-card>
+</div></div></main>
+<script>
+const {createApp,ref,reactive}=Vue;
+createApp({setup(){
+    const list=ref([]);const page=ref(1);const total=ref(0);const statusFilter=ref('');
+    const statusMap={success:'success',failed:'danger',auditing:'warning',pending:'info',processing:'info'};
+    const statusTextMap={success:'通过',failed:'失败',auditing:'审核中',pending:'待处理',processing:'处理中'};
+    function statusType(s){return statusMap[s]||'info'}
+    function statusText(s){return statusTextMap[s]||s}
+    async function load(p){page.value=p||1;try{const r=await axios.post('/api/admin/records',{page:page.value});if(r.data.code===200){list.value=r.data.data.list;total.value=r.data.data.total}}catch(e){}}
+    function exportCsv(){window.open('/api/export/csv')}
+    load(1);
+    return{list,page,total,statusFilter,statusType,statusText,load,exportCsv};
+}}).use(ElementPlus).mount('#app');
+</script></body></html>

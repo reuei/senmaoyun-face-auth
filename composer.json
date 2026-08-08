@@ -1,0 +1,28 @@
+{
+    "name": "senmaoyun/face-auth",
+    "description": "森码云实人认证系统 - ThinkPHP6 + Vue3/Element Plus",
+    "type": "project",
+    "require": {
+        "php": ">=8.1.0",
+        "topthink/framework": "^6.0",
+        "topthink/think-orm": "^2.0",
+        "topthink/think-view": "^1.0",
+        "ext-curl": "*",
+        "ext-json": "*",
+        "ext-openssl": "*",
+        "ext-gd": "*",
+        "ext-fileinfo": "*",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "app\\": "app/",
+            "extend\\": "extend/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist"
+    }
+}
