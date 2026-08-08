@@ -11,6 +11,15 @@ class Base
     public function __construct(App $app)
     {
         $this->app = $app;
+        View::assign('is_mobile', self::isMobile());
+    }
+
+    public static function isMobile()
+    {
+        $ua = strtolower($_SERVER['HTTP_USER_AGENT'] ?? '');
+        $mobiles = ['mobile','android','iphone','ipad','ipod','blackberry','windows phone','opera mini','iemobile'];
+        foreach ($mobiles as $m) { if (strpos($ua, $m) !== false) return true; }
+        return false;
     }
 
     protected function success($data = [], $msg = '操作成功', $code = 200)

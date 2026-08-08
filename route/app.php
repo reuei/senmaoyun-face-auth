@@ -29,7 +29,17 @@ Route::group('api', function () {
     Route::get('export/csv', 'api.Admin/exportCsv');
 });
 
-// 管理后台
+// 用户中心
+Route::group('user', function () {
+    Route::get('register', 'user.Auth/register');
+    Route::post('register', 'user.Auth/doRegister');
+    Route::get('login', 'user.Auth/login');
+    Route::post('login', 'user.Auth/doLogin');
+    Route::get('logout', 'user.Auth/logout');
+    Route::get('center', 'user.Auth/center');
+    Route::get('status', 'user.Auth/certifyStatus');
+    Route::post('updateCertify', 'user.Auth/updateCertify');
+});
 Route::group('admin', function () {
     Route::get('login', 'admin.Auth/login');
     Route::post('login', 'admin.Auth/doLogin');

@@ -128,6 +128,29 @@ CREATE TABLE IF NOT EXISTS `{prefix}rate_limit` (
   KEY `idx_window_start` (`window_start`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `{prefix}user` (
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `username` varchar(64) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `nickname` varchar(64) DEFAULT '',
+  `email` varchar(128) DEFAULT '',
+  `phone` varchar(20) DEFAULT '',
+  `avatar` varchar(255) DEFAULT '',
+  `real_name` varchar(64) DEFAULT '',
+  `id_card` varchar(255) DEFAULT '',
+  `certify_status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '0未认证 1已认证',
+  `certify_time` datetime DEFAULT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 1,
+  `last_login_ip` varchar(45) DEFAULT '',
+  `last_login_time` datetime DEFAULT NULL,
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_username` (`username`),
+  UNIQUE KEY `uk_email` (`email`),
+  KEY `idx_phone` (`phone`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 INSERT INTO `{prefix}face_driver` (`driver_code`, `driver_name`, `enabled`, `is_default`, `config`, `sort`) VALUES
 ('self', '自研活体检测', 1, 1, '{}', 0),
 ('tencent', '腾讯云慧眼', 0, 0, '{"secret_id":"","secret_key":"","region":"ap-guangzhou"}', 1),
