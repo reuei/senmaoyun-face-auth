@@ -1,0 +1,186 @@
+<?php
+/**
+ * 森码云实人认证系统 - 安装向导页面模板
+ */
+?>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>安装向导 - 森码云实人认证系统</title>
+    <style>
+        :root {
+            --primary: #4F46E5; --primary-light: #EEF2FF; --text: #1F2937;
+            --text-secondary: #6B7280; --text-muted: #9CA3AF; --bg: #F9FAFB;
+            --bg-white: #FFFFFF; --border: #E5E7EB; --success: #10B981;
+            --error: #EF4444; --warning: #F59E0B; --radius: 12px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+            background: var(--bg); color: var(--text); min-height: 100vh;
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        .card {
+            background: var(--bg-white); border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            border: 1px solid var(--border); max-width: 640px; width: 100%; padding: 40px;
+        }
+        .step-indicator { display: flex; gap: 8px; margin-bottom: 32px; }
+        .step-dot { flex: 1; height: 4px; background: var(--border); border-radius: 2px; }
+        .step-dot.active { background: var(--primary); }
+        .step-dot.done { background: var(--success); }
+        h1 { font-size: 24px; margin-bottom: 8px; }
+        .subtitle { color: var(--text-secondary); margin-bottom: 28px; font-size: 14px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+        input, select {
+            width: 100%; padding: 10px 14px; border: 1px solid var(--border);
+            border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.15s;
+        }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px;
+            background: var(--primary); color: #fff; border: none; border-radius: 8px;
+            font-size: 15px; font-weight: 500; cursor: pointer; transition: background 0.15s;
+        }
+        .btn:hover { background: #4338CA; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .check-list { margin-bottom: 24px; }
+        .check-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+        .check-pass { color: var(--success); font-weight: 600; }
+        .check-fail { color: var(--error); font-weight: 600; }
+        .error-msg { background: #FEE2E2; color: var(--error); padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
+        .success-msg { background: #D1FAE5; color: var(--success); padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>森码云实人认证系统 - 安装向导</h1>
+        <div class="step-indicator">
+            <div class="step-dot <?php echo $step >= 1 ? 'active' : ''; ?>"></div>
+            <div class="step-dot <?php echo $step >= 2 ? 'active' : ''; ?>"></div>
+            <div class="step-dot <?php echo $step >= 3 ? 'active' : ''; ?>"></div>
+            <div class="step-dot <?php echo $step >= 4 ? 'active' : ''; ?>"></div>
+        </div>
+
+        <?php if ($step == 1): ?>
+        <p class="subtitle">步骤 1/4: 环境检测</p>
+        <div class="check-list" id="checkList">
+            <div class="check-item"><span>正在检测环境...</span></div>
+        </div>
+        <button class="btn" id="checkBtn" onclick="checkEnvironment()">开始检测</button>
+        <button class="btn" id="nextBtn" style="display:none" onclick="location.href='?step=2'">下一步</button>
+
+        <script>
+        async function checkEnvironment() {
+            const btn = document.getElementById('checkBtn');
+            btn.disabled = true;
+            btn.textContent = '检测中...';
+
+            try {
+                const res = await fetch('/install/step/1');
+                const data = await res.json();
+                const checks = data.data.checks;
+                const list = document.getElementById('checkList');
+                let allPass = true;
+
+                list.innerHTML = '';
+                for (const [key, check] of Object.entries(checks)) {
+                    const status = check.pass ? '<span class="check-pass">✓</span>' : '<span class="check-fail">✗</span>';
+                    list.innerHTML += `<div class="check-item">${status} ${check.name}: ${check.current}</div>`;
+                    if (!check.pass) allPass = false;
+                }
+
+                if (allPass) {
+                    list.innerHTML += '<div class="success-msg">环境检测全部通过！</div>';
+                    document.getElementById('nextBtn').style.display = 'inline-flex';
+                } else {
+                    list.innerHTML += '<div class="error-msg">部分检测未通过，请根据提示修复后重试</div>';
+                }
+                btn.style.display = 'none';
+            } catch (e) {
+                alert('检测失败: ' + e.message);
+            }
+            btn.disabled = false;
+        }
+        </script>
+
+        <?php elseif ($step == 2): ?>
+        <p class="subtitle">步骤 2/4: 数据库配置</p>
+        <form id="dbForm" onsubmit="submitDb(event)">
+            <div class="form-group">
+                <label>数据库主机</label>
+                <input name="db_host" value="127.0.0.1" required />
+            </div>
+            <div class="form-group">
+                <label>数据库端口</label>
+                <input name="db_port" value="3306" required />
+            </div>
+            <div class="form-group">
+                <label>数据库名称</label>
+                <input name="db_name" value="senmaoyun" required />
+            </div>
+            <div class="form-group">
+                <label>数据库用户名</label>
+                <input name="db_user" required />
+            </div>
+            <div class="form-group">
+                <label>数据库密码</label>
+                <input name="db_pass" type="password" />
+            </div>
+            <div class="form-group">
+                <label>表前缀</label>
+                <input name="db_prefix" value="smy_" />
+            </div>
+            <div class="form-group">
+                <label>管理员用户名</label>
+                <input name="admin_user" required />
+            </div>
+            <div class="form-group">
+                <label>管理员密码</label>
+                <input name="admin_pass" type="password" required />
+            </div>
+            <div class="form-group">
+                <label>管理员邮箱</label>
+                <input name="admin_email" type="email" />
+            </div>
+            <button type="submit" class="btn" id="submitBtn">开始安装</button>
+        </form>
+        <div id="resultMsg"></div>
+        <script>
+        async function submitDb(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = '安装中...';
+
+            const form = new FormData(e.target);
+            const data = Object.fromEntries(form.entries());
+
+            try {
+                const res = await fetch('/install/setup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
+                const result = await res.json();
+                const msg = document.getElementById('resultMsg');
+                if (result.code === 200) {
+                    msg.innerHTML = '<div class="success-msg">安装成功！<br>管理后台: <a href="/admin/login">/admin/login</a><br>用户名: ' + data.admin_user + '</div>';
+                    btn.style.display = 'none';
+                } else {
+                    msg.innerHTML = '<div class="error-msg">' + result.msg + '</div>';
+                }
+            } catch (e) {
+                document.getElementById('resultMsg').innerHTML = '<div class="error-msg">安装失败: ' + e.message + '</div>';
+            }
+            btn.disabled = false;
+            btn.textContent = '开始安装';
+        }
+        </script>
+        <?php endif; ?>
+    </div>
+</body>
+</html>
