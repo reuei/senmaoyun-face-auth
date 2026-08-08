@@ -3,6 +3,10 @@ require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../includes/database.php';
 require_once __DIR__ . '/../../includes/functions.php';
 
+// 已登录则直接跳转用户中心
+session_start();
+if (!empty($_SESSION['user_id'])) { header('Location: /user/center'); exit; }
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
     $username = trim($input['username'] ?? '');

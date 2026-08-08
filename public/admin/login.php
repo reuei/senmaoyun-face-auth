@@ -1,10 +1,11 @@
 <?php
-/**
- * 后台登录页 v1.0.4
- */
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/database.php';
 require_once __DIR__ . '/../includes/functions.php';
+
+// 已登录则跳转后台
+session_start();
+if (!empty($_SESSION['admin_id'])) { header('Location: /admin/dashboard'); exit; }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
