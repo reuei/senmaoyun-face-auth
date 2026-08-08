@@ -55,6 +55,7 @@ switch (true) {
         break;
 
     case $uri === '/verify':
+        // 用户中心入口：允许已登录用户直接访问
         require __DIR__ . '/verify.php';
         break;
 
