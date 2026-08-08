@@ -52,6 +52,9 @@ Route::group('admin', function () {
     Route::post('audit/handle', 'admin.Audit/handle');
     Route::get('token', 'admin.Token/index');
     Route::post('token/revoke', 'admin.Token/revoke');
+    Route::get('users', 'admin.UserManage/index');
+    Route::post('users/list', 'admin.UserManage/list');
+    Route::post('users/toggle', 'admin.UserManage/toggle');
     Route::get('setting', 'admin.Setting/index');
     Route::post('setting/save', 'admin.Setting/save');
     Route::get('plugin', 'admin.Plugin/index');
