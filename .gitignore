@@ -1,0 +1,40 @@
+# 依赖目录
+vendor/
+node_modules/
+
+# 运行环境
+runtime/
+.env
+
+# 安装锁
+install.lock
+
+# 编译产物
+public/static/
+public/index.html
+public/assets/
+
+# 密钥文件
+*.key
+*.pem
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+runtime/log/
+
+# 上传的人脸数据
+runtime/face/
+
+# 临时文件
+*.tmp
+*.temp
