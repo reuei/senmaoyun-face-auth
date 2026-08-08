@@ -1,30 +1,32 @@
 <?php
 /**
- * API 路由处理器
+ * API 路由处理器 - 完整版
+ * 支持: 身份证校验、人脸识别、Token管理、魔方财务回调、数据导出
  */
 header('Content-Type: application/json; charset=utf-8');
 
 $action = $_GET['action'] ?? '';
 $input = json_decode(file_get_contents('php://input'), true) ?: [];
 
-// 速率限制检查
-function rate_limit_check($action, $max = 10)
-{
+// 速率限制
+function rate_limit_check($action, $max = 10) {
     try {
         $ip = get_client_ip();
-        $db = db();
-        $tbl = $db->table('rate_limit');
+        $db = db(); $tbl = $db->table('rate_limit');
         $window = date('Y-m-d H:i:s', time() - 60);
         $db->query("DELETE FROM `{$tbl}` WHERE window_start < ?", [$window]);
         $row = $db->fetch("SELECT `count` FROM `{$tbl}` WHERE ip_address=? AND action=? AND window_start>=?", [$ip, $action, $window]);
         if ($row && $row['count'] >= $max) return false;
-        if ($row) {
-            $db->update($tbl, ['count' => $row['count'] + 1], 'ip_address=? AND action=?', [$ip, $action]);
-        } else {
-            $db->insert($tbl, ['ip_address' => $ip, 'action' => $action, 'count' => 1, 'window_start' => date('Y-m-d H:i:s')]);
-        }
+        if ($row) { $db->update($tbl, ['count' => $row['count'] + 1], 'ip_address=? AND action=?', [$ip, $action]); }
+        else { $db->insert($tbl, ['ip_address' => $ip, 'action' => $action, 'count' => 1, 'window_start' => date('Y-m-d H:i:s')]); }
         return true;
     } catch (\Throwable $e) { return true; }
+}
+
+// 验证魔方API Key
+function verify_api_key() {
+    $key = $input['api_key'] ?? ($_SERVER['HTTP_X_API_KEY'] ?? '');
+    return $key === API_SECRET;
 }
 
 switch ($action) {
@@ -35,14 +37,13 @@ switch ($action) {
         $idCard = $input['id_card'] ?? '';
         if (empty($name) || mb_strlen($name) < 2) json_error('请输入有效姓名');
         if (empty($idCard)) json_error('请输入身份证号');
+        require_once SENMAO_ROOT . '/includes/idcard.php';
         $validator = new IdCardValidator();
         $result = $validator->verify($idCard);
         if (!$result['valid']) json_error($result['message']);
         json_success([
-            'name' => $name,
-            'gender' => $result['gender'],
-            'gender_text' => $result['gender_text'],
-            'birth_date' => $result['birth_date'],
+            'name' => $name, 'gender' => $result['gender'],
+            'gender_text' => $result['gender_text'], 'birth_date' => $result['birth_date'],
             'age' => $result['age'],
         ], '身份证号校验通过');
         break;
@@ -54,19 +55,14 @@ switch ($action) {
         $name = $input['name'] ?? '';
         $idCard = $input['id_card'] ?? '';
         if (empty($token) || empty($name) || empty($idCard)) json_error('参数不完整');
-        $tokenRecord = db()->fetch(
-            "SELECT * FROM " . db()->table('certify_token') . " WHERE token=? AND type='request' AND expire_time>NOW()", [$token]
-        );
+        $tokenRecord = db()->fetch("SELECT * FROM " . db()->table('certify_token') . " WHERE token=? AND type='request' AND expire_time>NOW()", [$token]);
         if (!$tokenRecord) json_error('Token无效');
         $enc = new Encrypt();
         $recordNo = date('YmdHis') . strtoupper(substr(md5(uniqid((string)mt_rand(), true)), 0, 8));
         db()->insert(db()->table('certify_record'), [
-            'record_no' => $recordNo,
-            'user_id' => $tokenRecord['user_id'],
-            'name' => $enc->encrypt($name),
-            'id_card' => $enc->encrypt($idCard),
-            'status' => 'processing',
-            'ip_address' => get_client_ip(),
+            'record_no' => $recordNo, 'user_id' => $tokenRecord['user_id'],
+            'name' => $enc->encrypt($name), 'id_card' => $enc->encrypt($idCard),
+            'status' => 'processing', 'ip_address' => get_client_ip(),
             'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
         ]);
         json_success(['record_no' => $recordNo, 'session_id' => db()->getPdo()->lastInsertId()], '认证会话已创建');
@@ -81,9 +77,8 @@ switch ($action) {
         if (empty($recordNo) || empty($imageBase64)) json_error('参数不完整');
         $record = db()->fetch("SELECT * FROM " . db()->table('certify_record') . " WHERE record_no=?", [$recordNo]);
         if (!$record) json_error('记录不存在');
-        // 保存图片
         $dir = SENMAO_ROOT . '/runtime/face/' . date('Ymd') . '/';
-        if (!is_dir($dir)) mkdir($dir, 0755, true);
+        if (!is_dir($dir)) { mkdir($dir, 0755, true); }
         $imgData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $imageBase64));
         $imgName = $recordNo . '_' . $actionType . '_' . time() . '.jpg';
         file_put_contents($dir . $imgName, $imgData);
@@ -102,27 +97,19 @@ switch ($action) {
         if (empty($recordNo)) json_error('缺少记录编号');
         $record = db()->fetch("SELECT * FROM " . db()->table('certify_record') . " WHERE record_no=?", [$recordNo]);
         if (!$record) json_error('记录不存在');
-        // 执行自研活体检测
         require_once SENMAO_ROOT . '/includes/face/self.php';
         $driver = new SelfDriver();
         $result = $driver->detectLiveness($imageBase64);
         $score = $result['liveness_score'];
         $passed = $result['success'] && $score >= FACE_LIVENESS_THRESHOLD;
         $status = $passed ? 'success' : 'failed';
-        $maxRetry = FACE_MAX_RETRY;
-        if (!$passed && $record['retry_count'] >= $maxRetry) {
-            $status = 'auditing';
-        }
-        $data = [
-            'status' => $status,
-            'liveness_score' => $score,
-            'driver_code' => 'self',
+        if (!$passed && $record['retry_count'] >= FACE_MAX_RETRY) { $status = 'auditing'; }
+        db()->update(db()->table('certify_record'), [
+            'status' => $status, 'liveness_score' => $score, 'driver_code' => 'self',
             'certify_time' => $passed ? date('Y-m-d H:i:s') : null,
             'fail_reason' => $passed ? '' : ($result['message'] ?? '活体检测未通过'),
-        ];
-        db()->update(db()->table('certify_record'), $data, 'record_no=?', [$recordNo]);
+        ], 'record_no=?', [$recordNo]);
         if ($passed) {
-            // 生成回调Token
             $cbToken = hash('sha256', random_bytes(32) . microtime(true) . $record['user_id']);
             db()->insert(db()->table('certify_token'), [
                 'token' => $cbToken, 'type' => 'callback', 'user_id' => $record['user_id'],
@@ -135,21 +122,16 @@ switch ($action) {
 
     // ─── Token生成（魔方财务调用） ───
     case 'token_generate':
+        if (!verify_api_key()) json_error('API Key无效', 403);
         $userId = $input['user_id'] ?? '';
         $callbackUrl = $input['callback_url'] ?? '';
-        $apiKey = $input['api_key'] ?? '';
         if (empty($userId) || empty($callbackUrl)) json_error('参数不完整');
-        $validKey = API_SECRET;
-        if ($apiKey !== $validKey) json_error('API Key无效');
         $token = hash('sha256', random_bytes(32) . microtime(true) . $userId);
         db()->insert(db()->table('certify_token'), [
             'token' => $token, 'type' => 'request', 'user_id' => $userId,
             'callback_url' => $callbackUrl, 'expire_time' => date('Y-m-d H:i:s', time() + 300), 'used' => 0,
         ]);
-        json_success([
-            'token' => $token,
-            'verify_url' => get_site_url() . '/verify?token=' . $token,
-        ], 'Token生成成功');
+        json_success(['token' => $token, 'verify_url' => get_site_url() . '/verify?token=' . $token], 'Token生成成功');
         break;
 
     // ─── Token验证 ───
@@ -160,6 +142,76 @@ switch ($action) {
         json_success(['valid' => (bool)$row, 'user_id' => $row['user_id'] ?? ''], $row ? 'Token有效' : 'Token无效');
         break;
 
+    // ─── 魔方财务回调处理 ───
+    case 'mofang_callback':
+        $cbToken = $input['token'] ?? '';
+        $userId = $input['user_id'] ?? '';
+        $status = $input['status'] ?? '';
+        $sign = $input['sign'] ?? '';
+        if (empty($cbToken) || empty($userId)) json_error('参数不完整');
+        $expectedSign = hash_hmac('sha256', $cbToken . $userId, API_SECRET);
+        if (!hash_equals($expectedSign, $sign)) json_error('签名验证失败', 403);
+        $tokenRow = db()->fetch("SELECT * FROM " . db()->table('certify_token') . " WHERE token=? AND type='callback' AND used=0", [$cbToken]);
+        if (!$tokenRow) json_error('回调Token无效');
+        db()->update(db()->table('certify_token'), ['used' => 1, 'used_time' => date('Y-m-d H:i:s')], 'token=?', [$cbToken]);
+        json_success([], '回调处理成功');
+        break;
+
+    // ─── 导出CSV ───
+    case 'export_csv':
+        if (!is_logged_in()) json_error('请先登录', 401);
+        $status = $_GET['status'] ?? '';
+        $where = '';
+        $params = [];
+        if ($status) { $where = "WHERE status=?"; $params = [$status]; }
+        $records = db()->fetchAll("SELECT record_no,user_id,status,liveness_score,driver_code,certify_time,ip_address FROM " . db()->table('certify_record') . " {$where} ORDER BY id DESC LIMIT 5000", $params);
+        $csv = "记录编号,用户ID,状态,活体分数,接口,认证时间,IP\n";
+        foreach ($records as $r) {
+            $csv .= implode(',', [$r['record_no'], $r['user_id'], $r['status'], $r['liveness_score'] ?: '', $r['driver_code'], $r['certify_time'] ?: '', $r['ip_address']]) . "\n";
+        }
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="certify_records_' . date('YmdHis') . '.csv"');
+        echo "\xEF\xBB\xBF" . $csv;
+        exit;
+        break;
+
+    // ─── 获取统计数据 ───
+    case 'admin_stats':
+        if (!is_logged_in()) json_error('请先登录', 401);
+        $today = date('Y-m-d');
+        $stats = [
+            'today_total' => db()->count(db()->table('certify_record'), "create_time >= ?", [$today . ' 00:00:00']),
+            'today_success' => db()->count(db()->table('certify_record'), "status='success' AND create_time >= ?", [$today . ' 00:00:00']),
+            'today_failed' => db()->count(db()->table('certify_record'), "status='failed' AND create_time >= ?", [$today . ' 00:00:00']),
+            'today_auditing' => db()->count(db()->table('certify_record'), "status='auditing' AND create_time >= ?", [$today . ' 00:00:00']),
+            'total' => db()->count(db()->table('certify_record')),
+            'total_success' => db()->count(db()->table('certify_record'), "status='success'"),
+        ];
+        $stats['pass_rate'] = $stats['total'] > 0 ? round($stats['total_success'] / $stats['total'] * 100, 1) : 0;
+        // 7天趋势
+        $trend = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $d = date('Y-m-d', strtotime("-{$i} days"));
+            $trend[] = [
+                'date' => substr($d, 5),
+                'total' => db()->count(db()->table('certify_record'), "create_time >= ? AND create_time < ?", [$d . ' 00:00:00', date('Y-m-d', strtotime("+1 day", strtotime($d))) . ' 00:00:00']),
+                'success' => db()->count(db()->table('certify_record'), "status='success' AND create_time >= ? AND create_time < ?", [$d . ' 00:00:00', date('Y-m-d', strtotime("+1 day", strtotime($d))) . ' 00:00:00']),
+            ];
+        }
+        json_success(['stats' => $stats, 'trend' => $trend]);
+        break;
+
+    // ─── 获取认证记录列表 ───
+    case 'admin_records':
+        if (!is_logged_in()) json_error('请先登录', 401);
+        $page = max(1, (int)($input['page'] ?? 1));
+        $limit = 20;
+        $offset = ($page - 1) * $limit;
+        $total = db()->count(db()->table('certify_record'));
+        $list = db()->fetchAll("SELECT * FROM " . db()->table('certify_record') . " ORDER BY id DESC LIMIT {$limit} OFFSET {$offset}");
+        json_success(['total' => $total, 'page' => $page, 'list' => $list]);
+        break;
+
     default:
-        json_error('未知API操作', 404);
+        json_error('未知API操作: ' . $action, 404);
 }
