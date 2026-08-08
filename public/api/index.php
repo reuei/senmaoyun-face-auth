@@ -236,6 +236,16 @@ switch ($action) {
         json_success(['total' => $total, 'page' => $page, 'list' => $list]);
         break;
 
+    // ─── 获取用户列表 ───
+    case 'admin_users':
+        if (!is_logged_in()) json_error('请先登录', 401);
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $limit = 20; $offset = ($page - 1) * $limit;
+        $total = db()->count(db()->table('user'));
+        $list = db()->fetchAll("SELECT * FROM " . db()->table('user') . " ORDER BY id DESC LIMIT {$limit} OFFSET {$offset}");
+        json_success(['total' => $total, 'page' => $page, 'list' => $list]);
+        break;
+
     default:
         json_error('未知API操作: ' . $action, 404);
 }
