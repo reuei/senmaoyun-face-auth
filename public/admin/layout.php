@@ -1,8 +1,11 @@
 <?php
 /**
- * 管理后台共享布局 v1.0.3
- * 使用 Element Plus CSS 变量 + 汉堡菜单
+ * 管理后台共享布局 v1.0.5
  */
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/database.php';
+require_once __DIR__ . '/../includes/functions.php';
+
 function admin_header($title, $active = 'dashboard') {
     $nav = [
         'dashboard' => ['📊', '控制台'],
