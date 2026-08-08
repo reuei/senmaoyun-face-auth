@@ -1,0 +1,6 @@
+<?php require __DIR__ . '/layout.php'; admin_layout_start('Token管理', 'token'); ?>
+<div class="card"><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#F1F5F9"><th style="padding:10px 14px;text-align:left;font-weight:600;color:#6B7280;font-size:12px">ID</th><th style="padding:10px 14px;text-align:left;font-weight:600;color:#6B7280;font-size:12px">Token</th><th style="padding:10px 14px;text-align:left;font-weight:600;color:#6B7280;font-size:12px">类型</th><th style="padding:10px 14px;text-align:left;font-weight:600;color:#6B7280;font-size:12px">用户ID</th><th style="padding:10px 14px;text-align:left;font-weight:600;color:#6B7280;font-size:12px">过期时间</th><th style="padding:10px 14px;text-align:left;font-weight:600;color:#6B7280;font-size:12px">操作</th></tr></thead><tbody id="tbody"><tr><td colspan="6" style="text-align:center;padding:30px;color:#9CA3AF">暂无活跃Token</td></tr></tbody></table></div></div>
+<script>
+(async function(){try{var r=await axios.post('/api/admin/records',{page:1});document.getElementById('tbody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:#9CA3AF">暂无活跃Token</td></tr>'}catch(e){}})();
+</script>
+<?php admin_layout_end(); ?>

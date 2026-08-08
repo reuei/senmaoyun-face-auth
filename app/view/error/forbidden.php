@@ -1,0 +1,5 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>访问受限 - 森码云</title>
+<link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css"><script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script><script src="https://unpkg.com/element-plus"></script>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#F8FAFC}</style></head><body><div id="app">
+<el-card style="max-width:460px;text-align:center;padding:40px"><div style="font-size:48px;margin-bottom:16px;color:#EF4444">🛡</div><h2>访问受限</h2><p style="color:#6B7280;margin:12px 0 24px"><?php echo htmlspecialchars($reason ?? '人脸识别仅允许从魔方财务系统入口进入。'); ?></p><el-button type="primary" @click="goHome">返回首页</el-button></el-card></div>
+<script>const{createApp}=Vue;createApp({setup(){function goHome(){window.location.href='/'}return{goHome}}}).use(ElementPlus).mount('#app');</script></body></html>

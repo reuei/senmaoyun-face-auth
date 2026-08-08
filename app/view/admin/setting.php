@@ -1,0 +1,12 @@
+<?php require __DIR__ . '/layout.php'; admin_layout_start('系统设置', 'setting'); ?>
+<div class="card" style="max-width:600px"><form method="post" action="/admin/setting/save" id="settingForm">
+<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:500;margin-bottom:4px">站点名称</label><input name="set_site_name" value="森码云实人认证系统" style="width:100%;padding:9px 12px;border:1px solid #E2E8F0;border-radius:6px;font-size:13px;outline:none"></div>
+<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:500;margin-bottom:4px">站点域名</label><input name="set_site_domain" value="face.builds.codes" style="width:100%;padding:9px 12px;border:1px solid #E2E8F0;border-radius:6px;font-size:13px;outline:none"></div>
+<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:500;margin-bottom:4px">魔方财务地址</label><input name="set_mofang_url" placeholder="https://your-mofang.com" style="width:100%;padding:9px 12px;border:1px solid #E2E8F0;border-radius:6px;font-size:13px;outline:none"></div>
+<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:500;margin-bottom:4px">最大重试次数</label><input name="set_max_retry" type="number" value="3" style="width:100%;padding:9px 12px;border:1px solid #E2E8F0;border-radius:6px;font-size:13px;outline:none"></div>
+<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:500;margin-bottom:4px">活体检测阈值</label><input name="set_liveness_threshold" type="number" value="80" style="width:100%;padding:9px 12px;border:1px solid #E2E8F0;border-radius:6px;font-size:13px;outline:none"></div>
+<div style="margin-bottom:14px"><label style="display:block;font-size:13px;font-weight:500;margin-bottom:4px">数据保留(小时)</label><input name="set_data_retention" type="number" value="24" style="width:100%;padding:9px 12px;border:1px solid #E2E8F0;border-radius:6px;font-size:13px;outline:none"></div>
+<button type="submit" style="padding:10px 24px;background:#4F46E5;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer">保存设置</button>
+</form></div>
+<script>document.getElementById('settingForm').addEventListener('submit',async function(e){e.preventDefault();try{await axios.post('/admin/setting/save',new FormData(this));alert('保存成功')}catch(e){alert('保存失败')}});</script>
+<?php admin_layout_end(); ?>
