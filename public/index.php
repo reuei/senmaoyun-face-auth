@@ -81,6 +81,14 @@ switch (true) {
         header('Location: /');
         exit;
 
+    case $uri === '/agreement':
+        require __DIR__ . '/agreement.php';
+        break;
+
+    case $uri === '/privacy':
+        require __DIR__ . '/privacy.php';
+        break;
+
     default:
         require __DIR__ . '/home.php';
 }

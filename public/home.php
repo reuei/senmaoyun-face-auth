@@ -24,15 +24,10 @@ body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans SC","PingF
 .nav-links a{font-size:14px;color:var(--c-text2);text-decoration:none;transition:color .15s}
 .nav-links a:hover{color:var(--c-text)}
 /* Banner */
-.banner{width:100%;height:420px;position:relative;overflow:hidden;background:linear-gradient(135deg,#1e1b4b,#312e81,#4F46E5)}
-.banner-slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transition:opacity .6s;opacity:0}
-.banner-slide.active{opacity:1}
-.banner-content{text-align:center;color:#fff;max-width:700px;padding:0 20px}
+.banner{width:100%;height:420px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:linear-gradient(135deg,#1e1b4b,#312e81,#4F46E5)}
+.banner-content{text-align:center;color:#fff;max-width:700px;padding:0 20px;z-index:1}
 .banner-content h2{font-size:clamp(28px,4vw,44px);font-weight:800;margin-bottom:16px;letter-spacing:-.02em}
 .banner-content p{font-size:16px;opacity:.9;margin-bottom:28px;line-height:1.7}
-.banner-dots{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px}
-.banner-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.4);cursor:pointer;transition:all .3s}
-.banner-dot.active{background:#fff;width:24px;border-radius:5px}
 .banner-illustration{position:absolute;right:5%;top:50%;transform:translateY(-50%);opacity:.15;pointer-events:none}
 .banner-illustration svg{width:300px;height:300px}
 /* Sections */
@@ -68,11 +63,9 @@ body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans SC","PingF
 </div></nav>
 
 <section class="banner">
-<div class="banner-slide active"><div class="banner-content"><h2>企业级AI实人认证</h2><p>6种识别接口 · 自研算法 · 零依赖部署</p><a href="/user/register" class="el-button el-button--large" style="background:#fff;color:#4F46E5;border:none">立即注册</a></div></div>
-<div class="banner-slide"><div class="banner-content"><h2>支持魔方财务系统</h2><p>完整插件 · Token安全机制 · 一键集成</p><a href="/user/register" class="el-button el-button--large" style="background:#fff;color:#4F46E5;border:none">免费使用</a></div></div>
-<div class="banner-slide"><div class="banner-content"><h2>GB/T国家标准合规</h2><p>身份证校验 · 活体检测 · 数据加密存储</p><a href="/user/login" class="el-button el-button--large" style="background:#fff;color:#4F46E5;border:none">用户登录</a></div></div>
+<div class="banner-content"><h2>企业级AI实人认证</h2><p>6种识别接口 · 自研算法 · 零依赖部署 · GB/T国标合规</p>
+<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap"><a href="/user/register" class="el-button el-button--large" style="background:#fff;color:#4F46E5;border:none">免费注册</a><a href="/user/login" class="el-button el-button--large" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3)">用户登录</a></div></div>
 <div class="banner-illustration"><svg viewBox="0 0 300 300" fill="none"><circle cx="150" cy="120" r="80" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2"/><circle cx="150" cy="120" r="50" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="2"/><circle cx="150" cy="120" r="20" fill="rgba(255,255,255,.3)"/><path d="M140 115 L148 123 L160 108" stroke="rgba(255,255,255,.6)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-<div class="banner-dots"><div class="banner-dot active" onclick="switchBanner(0)"></div><div class="banner-dot" onclick="switchBanner(1)"></div><div class="banner-dot" onclick="switchBanner(2)"></div></div>
 </section>
 
 <section id="features" class="sec"><div class="container">
@@ -104,9 +97,4 @@ body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans SC","PingF
 <div class="footer-links"><a href="#">服务协议</a><a href="#">隐私政策</a></div>
 <div>&copy; <?php echo date('Y'); ?> 森码云 v1.0.4</div>
 </div></footer>
-<script>
-var currentBanner=0,slides=document.querySelectorAll('.banner-slide'),dots=document.querySelectorAll('.banner-dot');
-function switchBanner(n){slides[currentBanner].classList.remove('active');dots[currentBanner].classList.remove('active');currentBanner=n;slides[currentBanner].classList.add('active');dots[currentBanner].classList.add('active')}
-setInterval(function(){switchBanner((currentBanner+1)%3)},5000);
-</script>
 </body></html>
