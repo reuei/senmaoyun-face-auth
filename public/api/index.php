@@ -5,8 +5,32 @@
  */
 header('Content-Type: application/json; charset=utf-8');
 
+// 支持两种路由格式: ?action=xxx 和 /api/xxx/yyy
 $action = $_GET['action'] ?? '';
+if (empty($action)) {
+    $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    $uri = trim(str_replace('/api', '', $uri), '/');
+    // URL路径到action的映射
+    $urlMap = [
+        'idcard/verify' => 'idcard_verify',
+        'face/init'     => 'face_init',
+        'face/upload'   => 'face_action',
+        'face/action'   => 'face_action',
+        'face/result'   => 'face_result',
+        'token/verify'  => 'token_verify',
+        'token/generate'=> 'token_generate',
+        'callback/mofang'=> 'mofang_callback',
+        'v1/certify/init'=> 'token_generate',
+        'v1/certify/callback'=> 'mofang_callback',
+        'v1/certify/status'=> 'token_verify',
+        'admin/stats'   => 'admin_stats',
+        'admin/records' => 'admin_records',
+        'export/csv'    => 'export_csv',
+    ];
+    $action = $urlMap[$uri] ?? '';
+}
 $input = json_decode(file_get_contents('php://input'), true) ?: [];
+if (empty($input)) { $input = $_POST; }
 
 // 速率限制
 function rate_limit_check($action, $max = 10) {
