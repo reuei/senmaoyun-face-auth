@@ -1,78 +1,64 @@
--- ============================================================
 -- 森码云实人认证系统 - 数据库安装脚本
--- 版本: 1.0.0
--- 日期: 2026-08-08
--- ============================================================
-
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+08:00";
 SET NAMES utf8mb4;
 
--- -----------------------------------------------------------
--- 表结构: 管理员表
--- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `{prefix}admin` (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `username` varchar(64) NOT NULL COMMENT '用户名',
-  `password` varchar(255) NOT NULL COMMENT '密码（bcrypt）',
-  `nickname` varchar(64) DEFAULT '' COMMENT '昵称',
-  `email` varchar(128) DEFAULT '' COMMENT '邮箱',
-  `avatar` varchar(255) DEFAULT '' COMMENT '头像',
-  `role` enum('super','admin','auditor') NOT NULL DEFAULT 'admin' COMMENT '角色',
-  `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 1启用 0禁用',
-  `last_login_ip` varchar(45) DEFAULT '' COMMENT '最后登录IP',
-  `last_login_time` datetime DEFAULT NULL COMMENT '最后登录时间',
-  `login_count` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '登录次数',
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `username` varchar(64) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `nickname` varchar(64) DEFAULT '',
+  `email` varchar(128) DEFAULT '',
+  `avatar` varchar(255) DEFAULT '',
+  `role` enum('super','admin','auditor') NOT NULL DEFAULT 'admin',
+  `status` tinyint(1) NOT NULL DEFAULT 1,
+  `last_login_ip` varchar(45) DEFAULT '',
+  `last_login_time` datetime DEFAULT NULL,
+  `login_count` int UNSIGNED NOT NULL DEFAULT 0,
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_username` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -----------------------------------------------------------
--- 表结构: 接口驱动配置表
--- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `{prefix}face_driver` (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `driver_code` varchar(32) NOT NULL COMMENT '驱动代码',
-  `driver_name` varchar(64) NOT NULL COMMENT '驱动名称',
-  `enabled` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否启用',
-  `is_default` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否默认',
-  `config` text COMMENT '配置（加密存储）',
-  `sort` int(11) NOT NULL DEFAULT 0 COMMENT '排序',
-  `last_test_time` datetime DEFAULT NULL COMMENT '最后测试时间',
-  `last_test_result` tinyint(1) DEFAULT NULL COMMENT '最后测试结果',
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `driver_code` varchar(32) NOT NULL,
+  `driver_name` varchar(64) NOT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT 0,
+  `is_default` tinyint(1) NOT NULL DEFAULT 0,
+  `config` text,
+  `sort` int NOT NULL DEFAULT 0,
+  `last_test_time` datetime DEFAULT NULL,
+  `last_test_result` tinyint(1) DEFAULT NULL,
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_driver_code` (`driver_code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='人脸识别接口驱动表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -----------------------------------------------------------
--- 表结构: 认证记录表
--- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `{prefix}certify_record` (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `record_no` varchar(32) NOT NULL COMMENT '记录编号',
-  `user_id` varchar(64) NOT NULL DEFAULT '' COMMENT '用户标识（魔方财务用户ID）',
-  `name` varchar(64) NOT NULL COMMENT '姓名（加密存储）',
-  `id_card` varchar(255) NOT NULL COMMENT '身份证号（加密存储）',
-  `gender` enum('male','female','unknown') NOT NULL DEFAULT 'unknown' COMMENT '性别',
-  `birth_date` date DEFAULT NULL COMMENT '出生日期',
-  `driver_code` varchar(32) NOT NULL DEFAULT '' COMMENT '使用的接口驱动',
-  `liveness_score` decimal(5,2) DEFAULT NULL COMMENT '活体检测分数',
-  `compare_score` decimal(5,2) DEFAULT NULL COMMENT '人脸比对分数',
-  `status` enum('pending','processing','success','failed','auditing') NOT NULL DEFAULT 'pending' COMMENT '状态',
-  `fail_reason` varchar(255) DEFAULT '' COMMENT '失败原因',
-  `retry_count` tinyint(3) UNSIGNED NOT NULL DEFAULT 0 COMMENT '重试次数',
-  `face_image` varchar(255) DEFAULT '' COMMENT '采集人脸图片路径',
-  `action_video` varchar(255) DEFAULT '' COMMENT '动作视频路径',
-  `certify_time` datetime DEFAULT NULL COMMENT '认证完成时间',
-  `ip_address` varchar(45) DEFAULT '' COMMENT 'IP地址',
-  `user_agent` varchar(500) DEFAULT '' COMMENT 'User Agent',
-  `callback_status` enum('pending','success','failed') NOT NULL DEFAULT 'pending' COMMENT '回调状态',
-  `callback_response` text COMMENT '回调响应',
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `record_no` varchar(32) NOT NULL,
+  `user_id` varchar(64) NOT NULL DEFAULT '',
+  `name` varchar(255) NOT NULL,
+  `id_card` varchar(255) NOT NULL,
+  `gender` enum('male','female','unknown') NOT NULL DEFAULT 'unknown',
+  `birth_date` date DEFAULT NULL,
+  `driver_code` varchar(32) NOT NULL DEFAULT '',
+  `liveness_score` decimal(5,2) DEFAULT NULL,
+  `compare_score` decimal(5,2) DEFAULT NULL,
+  `status` enum('pending','processing','success','failed','auditing') NOT NULL DEFAULT 'pending',
+  `fail_reason` varchar(255) DEFAULT '',
+  `retry_count` tinyint UNSIGNED NOT NULL DEFAULT 0,
+  `face_image` varchar(255) DEFAULT '',
+  `action_video` varchar(255) DEFAULT '',
+  `certify_time` datetime DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT '',
+  `user_agent` varchar(500) DEFAULT '',
+  `callback_status` enum('pending','success','failed') NOT NULL DEFAULT 'pending',
+  `callback_response` text,
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -80,85 +66,68 @@ CREATE TABLE IF NOT EXISTS `{prefix}certify_record` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_status` (`status`),
   KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='认证记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -----------------------------------------------------------
--- 表结构: 认证Token表
--- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `{prefix}certify_token` (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `token` varchar(128) NOT NULL COMMENT 'Token值',
-  `type` enum('request','callback') NOT NULL DEFAULT 'request' COMMENT '类型',
-  `user_id` varchar(64) NOT NULL DEFAULT '' COMMENT '用户标识',
-  `callback_url` varchar(500) DEFAULT '' COMMENT '回调地址',
-  `expire_time` datetime NOT NULL COMMENT '过期时间',
-  `used` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否已使用',
-  `used_time` datetime DEFAULT NULL COMMENT '使用时间',
-  `record_id` bigint(20) UNSIGNED DEFAULT NULL COMMENT '关联认证记录ID',
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `token` varchar(128) NOT NULL,
+  `type` enum('request','callback') NOT NULL DEFAULT 'request',
+  `user_id` varchar(64) NOT NULL DEFAULT '',
+  `callback_url` varchar(500) DEFAULT '',
+  `expire_time` datetime NOT NULL,
+  `used` tinyint(1) NOT NULL DEFAULT 0,
+  `used_time` datetime DEFAULT NULL,
+  `record_id` bigint UNSIGNED DEFAULT NULL,
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_token` (`token`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_expire_time` (`expire_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='认证Token表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -----------------------------------------------------------
--- 表结构: 系统配置表
--- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `{prefix}setting` (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `key` varchar(64) NOT NULL COMMENT '配置键',
-  `value` text COMMENT '配置值',
-  `type` enum('string','text','number','bool','json') NOT NULL DEFAULT 'string' COMMENT '值类型',
-  `group` varchar(32) NOT NULL DEFAULT 'system' COMMENT '分组',
-  `title` varchar(64) DEFAULT '' COMMENT '标题',
-  `description` varchar(255) DEFAULT '' COMMENT '描述',
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `key` varchar(64) NOT NULL,
+  `value` text,
+  `type` enum('string','text','number','bool','json') NOT NULL DEFAULT 'string',
+  `group` varchar(32) NOT NULL DEFAULT 'system',
+  `title` varchar(64) DEFAULT '',
+  `description` varchar(255) DEFAULT '',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_key` (`key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -----------------------------------------------------------
--- 表结构: 审计日志表
--- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `{prefix}audit_log` (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `admin_id` int(11) UNSIGNED DEFAULT NULL COMMENT '管理员ID',
-  `action` varchar(64) NOT NULL COMMENT '操作名称',
-  `module` varchar(32) NOT NULL DEFAULT '' COMMENT '模块',
-  `target_type` varchar(32) DEFAULT '' COMMENT '目标类型',
-  `target_id` varchar(64) DEFAULT '' COMMENT '目标ID',
-  `content` text COMMENT '操作详情（JSON）',
-  `ip_address` varchar(45) DEFAULT '' COMMENT 'IP地址',
-  `user_agent` varchar(500) DEFAULT '' COMMENT 'User Agent',
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `admin_id` int UNSIGNED DEFAULT NULL,
+  `action` varchar(64) NOT NULL,
+  `module` varchar(32) NOT NULL DEFAULT '',
+  `target_type` varchar(32) DEFAULT '',
+  `target_id` varchar(64) DEFAULT '',
+  `content` text,
+  `ip_address` varchar(45) DEFAULT '',
+  `user_agent` varchar(500) DEFAULT '',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_admin_id` (`admin_id`),
   KEY `idx_action` (`action`),
   KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='审计日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -----------------------------------------------------------
--- 表结构: 速率限制表
--- -----------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `{prefix}rate_limit` (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `ip_address` varchar(45) NOT NULL COMMENT 'IP地址',
-  `action` varchar(32) NOT NULL COMMENT '操作类型',
-  `count` int(11) UNSIGNED NOT NULL DEFAULT 1 COMMENT '计数',
-  `window_start` datetime NOT NULL COMMENT '窗口起始时间',
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `ip_address` varchar(45) NOT NULL,
+  `action` varchar(32) NOT NULL,
+  `count` int UNSIGNED NOT NULL DEFAULT 1,
+  `window_start` datetime NOT NULL,
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_ip_action` (`ip_address`, `action`),
+  KEY `idx_ip_action` (`ip_address`,`action`),
   KEY `idx_window_start` (`window_start`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='速率限制表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -----------------------------------------------------------
--- 插入默认数据
--- -----------------------------------------------------------
-
--- 默认接口驱动
 INSERT INTO `{prefix}face_driver` (`driver_code`, `driver_name`, `enabled`, `is_default`, `config`, `sort`) VALUES
 ('self', '自研活体检测', 1, 1, '{}', 0),
 ('tencent', '腾讯云慧眼', 0, 0, '{"secret_id":"","secret_key":"","region":"ap-guangzhou"}', 1),
@@ -167,7 +136,6 @@ INSERT INTO `{prefix}face_driver` (`driver_code`, `driver_name`, `enabled`, `is_
 ('juhe', '聚合数据活体检测', 0, 0, '{"api_key":""}', 4),
 ('aliyun_market', '阿里云市场活体检测', 0, 0, '{"app_code":""}', 5);
 
--- 默认系统配置
 INSERT INTO `{prefix}setting` (`key`, `value`, `type`, `group`, `title`) VALUES
 ('site_name', '森码云实人认证系统', 'string', 'system', '站点名称'),
 ('site_domain', 'face.builds.codes', 'string', 'system', '站点域名'),
@@ -177,10 +145,6 @@ INSERT INTO `{prefix}setting` (`key`, `value`, `type`, `group`, `title`) VALUES
 ('liveness_threshold', '80', 'number', 'face', '活体检测阈值'),
 ('compare_threshold', '80', 'number', 'face', '人脸比对阈值'),
 ('data_retention', '24', 'number', 'face', '数据保留时间(小时)'),
-('rate_limit', '10', 'number', 'security', '速率限制(次/分钟)'),
-('face_encryption_key', '', 'string', 'security', '数据加密密钥'),
-('agreement_content', '', 'text', 'content', '实人认证服务协议'),
-('privacy_policy', '', 'text', 'content', '隐私政策'),
-('face_auth_letter', '', 'text', 'content', '人脸识别授权书');
+('rate_limit', '10', 'number', 'security', '速率限制(次/分钟)');
 
 COMMIT;
